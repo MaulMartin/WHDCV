@@ -9,7 +9,10 @@ from db import db_connect, Faction, Unit
 rulesList = []
 
 fileName = "rules.json"
+pvFileName = "Point Values.pdf"
+pvJson = "pointValues.json"
 pathToIndexes = "G:/Мій диск/Warhammer/10th"
+pathToPVs = "G:/Мій диск/Warhammer/10th"
 
 
 def Scan(rulesList, fileName, pathToIndexes):
@@ -64,10 +67,10 @@ def Scan(rulesList, fileName, pathToIndexes):
                     data_cards["front"] = {}
                     data_cards["back"] = {}
         rulesList.append(armyIndex)
-    if os.path.exists(fileName):
-        os.remove(fileName)
+    if os.path.exists(pvJson):
+        os.remove(pvJson)
         print("File exists, replacing")
-    jsonRules = open(fileName, "x")
+    jsonRules = open(pvJson, "x")
     jsonRules.write(
         json.dumps(rulesList, indent=4).replace("\u2013", "-").replace("\n", " ")
     )
@@ -108,6 +111,41 @@ def Upload(rulesList):
                     session.commit()
 
 
+def ScanPointsValues(pathToPVs, pvFileName):
+    reader = PyPDF2.PdfReader(pathToPVs + "/" + pvFileName)
+    pv_list = []
+    for p in reader.pages:
+        pvtext = p.extract_text()
+        if 'FIELD MANUAL' in pvtext:
+            print('Title page: Skipping')
+        else:
+            values = pvtext.split('\n')
+            unitPvs = {
+                'faction': values[0],
+                'name': '',
+                'pvs': []
+            }
+            for record in values:
+                if record == unitPvs["faction"]:
+                    print(f"Faction name: " + record)
+                elif 'model' not in record:
+                    if unitPvs["name"] != '':
+                        pv_list.append(unitPvs.copy())
+                        unitPvs["pvs"] = []
+                    unitPvs["name"] = record
+                else:
+                    unitPvs['pvs'].append(record.replace('.',''))
+    
+    if os.path.exists(pvFileName):
+        os.remove(pvFileName)
+        print("File exists, replacing")
+    jsonRules = open(pvFileName, "x")
+    jsonRules.write(
+        json.dumps(pv_list, indent=4).replace("\u2013", "-").replace("\n", " ")
+    )
+
+
+
 sel = -1
 
 while sel != "0":
@@ -115,6 +153,7 @@ while sel != "0":
     print("1. Scan")
     print("2. Upload")
     print("3. Scan and Upload")
+    print("4. Scan Points Values")
     print("0. Exit")
     sel = input("> ")
     if sel == "1":
@@ -128,6 +167,8 @@ while sel != "0":
     elif sel == "3":
         Scan(rulesList, fileName, pathToIndexes)
         Upload(rulesList)
+    elif sel == "4":
+        ScanPointsValues(pathToPVs, pvFileName)
     elif sel == "0":
         exit
     else:
