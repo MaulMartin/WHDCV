@@ -11,11 +11,11 @@ rulesList = []
 fileName = "rules.json"
 pvFileName = "Point Values.pdf"
 pvJson = "pointValues.json"
-pathToIndexes = "G:/Мій диск/Warhammer/10th"
-pathToPVs = "G:/Мій диск/Warhammer/10th"
+pathToIndexes = "/indexes"
+pathToPVs = "/pointsValues"
 
 
-def Scan(rulesList, fileName, pathToIndexes):
+def Scan(rulesList, pathToIndexes):
     files = list(filter(lambda x: "Index" in x, os.listdir(pathToIndexes)))
 
     if files.count == 0:
@@ -28,7 +28,6 @@ def Scan(rulesList, fileName, pathToIndexes):
             "units": [],
         }
         reader = PyPDF2.PdfReader(pathToIndexes + "/" + f)
-        numPages = len(reader.pages)
         isFront = True
         data_cards = {
             "front": {},
@@ -145,7 +144,6 @@ def ScanPointsValues(pathToPVs, pvFileName):
     )
 
 
-
 sel = -1
 
 while sel != "0":
@@ -157,7 +155,7 @@ while sel != "0":
     print("0. Exit")
     sel = input("> ")
     if sel == "1":
-        Scan(rulesList, fileName, pathToIndexes)
+        Scan(rulesList, pathToIndexes)
     elif sel == "2":
         if rulesList == []:
             print("Loading data from file")
